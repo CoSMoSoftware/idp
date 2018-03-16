@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dist": "mkdir -p dist && browserify --require ./index.js index.js config.json -o dist/idp.js && echo 'register();' >> dist/idp.js "
+    "dist": "mkdir -p dist && browserify --require ./index.js index.js config.json -o dist/idp.js"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "idb-keyval": "^2.4.0"
+  }
 }

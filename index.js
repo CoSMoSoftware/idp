@@ -1,10 +1,7 @@
-const IdentityProvider = require("./lib/IdentityProvider");
+const IdentityProvider	= require("./lib/IdentityProvider");
 
-//Load google idendity provider config
-const config = require("./config.json");
-
-//Create an idp instance
-const idp = new IdentityProvider(config);
+//Create an idp instance from datasttore
+const idp = new IdentityProvider();
 
 //Register identity provider on global RTCIdentityProviderRegistrar 
 rtcIdentityProvider.register(idp);
