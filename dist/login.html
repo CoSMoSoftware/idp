@@ -121,7 +121,7 @@
 				signout.style.display = "";
 				
 				//Pass message to main app
-				(window.opener || window.parent).postMessage("WEBRTC-LOGINDONE")
+				(window.opener || window.parent).postMessage("WEBRTC-LOGINDONE","*")
 			}
 			
 			function signOut () {

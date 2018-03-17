@@ -100,6 +100,12 @@ class IdentityProvider
 			//Get assertion
 			const shortened = await url.json();
 			
+			//Check everything has gone ok
+			if (!shortened.id)
+				throw {
+					name: 'IdpLoginError',
+					loginUrl: `https://${domain}/.well-known/idp-proxy/login.html`
+				};
 			//Return assertion id
 			return {
 				idp : {
@@ -145,11 +151,11 @@ class IdentityProvider
 		 */
 		try {
 			//Get long value
-			const url = await fetch("https://content.googleapis.com/urlshortener/v1/url?key="+key+"&shortUrl="+ encodeURI(assertion.assertion));
+			const url = await fetch("https://content.googleapis.com/urlshortener/v1/url?key="+key+"&shortUrl="+ encodeURI(assertion));
 
 			//Get response
 			const json = await url.json();
-
+		
 			//Get expanded url
 			const longUrl = new URL(json.longUrl);
 			
@@ -169,7 +175,7 @@ class IdentityProvider
 			
 			//Return asserted identity and origina contents
 			return {
-				identity : JSON.stringify (identity),
+				identity : identity.email.replace("@","%40") + "@" + domain ,
 				contents : generated.contents
 			};
 		} catch (e) {
@@ -180,6 +186,7 @@ class IdentityProvider
 };
 
 module.exports = IdentityProvider;
+
 },{"idb-keyval":2}],2:[function(require,module,exports){
 'use strict';
 
