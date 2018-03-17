@@ -1,19 +1,18 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/index.js":[function(require,module,exports){
 const IdentityProvider	= require("./lib/IdentityProvider");
 
-//Load google idendity provider config
-const config = require("./config.json");
-
 //Create an idp instance from datasttore
 const idp = new IdentityProvider();
 
 //Register identity provider on global RTCIdentityProviderRegistrar 
 rtcIdentityProvider.register(idp);
 
-},{"./config.json":1,"./lib/IdentityProvider":2}],1:[function(require,module,exports){
-module.exports={"web":{"client_id":"853007088796-bohen34hruo6ddbvbvmohirlb243d41s.apps.googleusercontent.com","project_id":"woven-honor-197813","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://accounts.google.com/o/oauth2/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"jkTvMSP7FOYLSPMJecgpxpxV","javascript_origins":["https://ubuntu/"]}}
-},{}],2:[function(require,module,exports){
+},{"./lib/IdentityProvider":1}],1:[function(require,module,exports){
 const idbKeyval = require('idb-keyval');
+
+const domain	= "idp-proxy.ddns.net";
+const protocol	= "idp.js";
+const key	= "AIzaSyD7pVGgeD6rxg0lyp36_Z7Tv4lhxKfaD1E"; //ONly valid for idp-proxy.ddns.net domain
 
 /*
  *  dictionary RTCIdentityProvider {
@@ -75,14 +74,11 @@ class IdentityProvider
 
 			//Check if user is authenticated
 			if (!idToken || !accessToken)
-			{
 				//Create error
-				const err = new Error("idp-need-login");
-				//Set idp login url
-				err.idpLoginUrl  = `https://${origin}/.well-known/idp-proxy/login.html`;
-				err.idpErrorInfo = "login required";
-				throw err;
-			}
+				throw {
+					name: 'IdpLoginError',
+					loginUrl: `https://${domain}/.well-known/idp-proxy/login.html`
+				};
 			
 			//Create long assertion with the id token and the contents
 			const long = JSON.stringify ({
@@ -98,7 +94,7 @@ class IdentityProvider
 					"content-type"  : "application/json" 
 				},
 				body: JSON.stringify({
-					longUrl : "https://"+origin+"/"+encodeURI(long)
+					longUrl : "https://"+domain+"/"+encodeURI(long)
 				})
 			});
 			//Get assertion
@@ -107,18 +103,17 @@ class IdentityProvider
 			//Return assertion id
 			return {
 				idp : {
-					domain   : origin,
-					protocol : options ? options.protocol : "idp.js"
+					domain   : domain,
+					protocol : protocol
 				},
 				assertion : shortened.id
 			};
 		} catch (e) {
 			//Create error
-			const err = new Error("idp-need-login");
-			//Set idp login url
-			err.idpLoginUrl = `https://${origin}/.well-known/idp-proxy/login.html`;
-			err.idpErrorInfo = e;
-			throw err;
+			throw {
+				name: 'IdpLoginError',
+				loginUrl: `https://${domain}/.well-known/idp-proxy/login.html`
+			};
 		}
 	}
 	
@@ -150,13 +145,16 @@ class IdentityProvider
 		 */
 		try {
 			//Get long value
-			const urlshortener = await fetch("https://content.googleapis.com/urlshortener/v1/url?shortUrl="+ encodeURI(assertion));
+			const url = await fetch("https://content.googleapis.com/urlshortener/v1/url?key="+key+"&shortUrl="+ encodeURI(assertion.assertion));
+
+			//Get response
+			const json = await url.json();
 
 			//Get expanded url
-			const url = new URL(await urlshortener.json());
+			const longUrl = new URL(json.longUrl);
 			
 			//Decode stored informaton on the generated assertion
-			const generated = decodeURI(url.path);
+			const generated = JSON.parse(decodeURI(longUrl.pathname).slice(1));
 
 			//Validate token
 			if (!generated || !generated.token)
@@ -169,6 +167,7 @@ class IdentityProvider
 			//Get identity information associated to the token
 			const identity = await tokeninfo.json();
 			
+			//Return asserted identity and origina contents
 			return {
 				identity : JSON.stringify (identity),
 				contents : generated.contents
@@ -181,7 +180,7 @@ class IdentityProvider
 };
 
 module.exports = IdentityProvider;
-},{"idb-keyval":3}],3:[function(require,module,exports){
+},{"idb-keyval":2}],2:[function(require,module,exports){
 'use strict';
 
 var db;
@@ -265,4 +264,4 @@ var idbKeyval = {
 
 module.exports = idbKeyval;
 
-},{}]},{},["/index.js",1]);
+},{}]},{},["/index.js"]);

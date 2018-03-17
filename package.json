@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dist": "mkdir -p dist && browserify --require ./index.js index.js config.json -o dist/idp.js"
+    "dist": "mkdir -p dist && browserify --require ./index.js index.js -o dist/idp.js"
   },
   "license": "MIT",
   "dependencies": {

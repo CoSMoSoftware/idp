@@ -119,6 +119,9 @@
 				//Set avatar image and sow
 				avatar.src = profile.getImageUrl();
 				signout.style.display = "";
+				
+				//Pass message to main app
+				(window.opener || window.parent).postMessage("WEBRTC-LOGINDONE")
 			}
 			
 			function signOut () {
