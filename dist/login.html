@@ -2,21 +2,32 @@
 	<head>
 		<meta name="google-signin-scope" content="profile email https://www.googleapis.com/auth/urlshortener">
 		<meta name="google-signin-client_id" content="853007088796-bohen34hruo6ddbvbvmohirlb243d41s.apps.googleusercontent.com">
+		<style>
+			#signout {
+				font-family: Roboto,arial,sans-serif;
+				font-size: 14px;
+				font-weight: 500;
+				letter-spacing: .21px;
+			}
+			#signout a {
+				 text-decoration: none;
+			}
+			#avatar {
+				width: 60px;
+				height: 60px;
+				border-radius: 50%;
+				overflow: hidden;
+				border: 1px solid #cacaca;
+			}
+		</style>
 		<script src="https://apis.google.com/js/platform.js" async defer></script>
 	</head>
 	<body>
-		<div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+		<div id=signin class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+		<div id=signout style="display:none">
+		<img id="avatar"><br>
 		<a href="#" onclick="signOut ();">Sign out</a>
-		<script>
-			function signOut () {
-				var auth2 = gapi.auth2.getAuthInstance ();
-				idbKeyval.delete("id_token");
-				idbKeyval.delete("access_token");
-				auth2.signOut ().then (function () {
-					console.log ('User signed out.');
-				});
-			}
-		</script>
+		</div>
 		<script>var idbKeyval = function () {
 				"use strict";
 				var db;
@@ -102,6 +113,24 @@
 				console.log ("ID Token: " + id_token);
 				idbKeyval.set ("id_token", id_token);
 				idbKeyval.set ("access_token", googleUser.getAuthResponse ().access_token);
+				
+				//Hide sign in
+				signin.style.display = "none";
+				//Set avatar image and sow
+				avatar.src = profile.getImageUrl();
+				signout.style.display = "";
+			}
+			
+			function signOut () {
+				var auth2 = gapi.auth2.getAuthInstance ();
+				idbKeyval.delete("id_token");
+				idbKeyval.delete("access_token");
+				auth2.signOut ().then (function () {
+					console.log ('User signed out.');
+					//Switch visibility
+					signin.style.display = "";
+					signout.style.display = "none";
+				});
 			}
 		</script>
 	</body>
